@@ -16,11 +16,12 @@ public class LoveAppDocumentConfig {
     @Resource
     private LoveAppDocumentReader loveAppDocumentReader;
 
+    // 配置向量存储，用于存储和检索文档向量
     @Bean
-    VectorStore loveAppDocuments(EmbeddingModel embeddingModel) {
+    VectorStore loveAppVectorStore(EmbeddingModel embeddingModel) {
         List<Document> documentList = loveAppDocumentReader.readDocument();
         SimpleVectorStore vectorStore = SimpleVectorStore.builder(embeddingModel).build();
-        vectorStore.add(documentList);
+        vectorStore.add(documentList); // add方法会将文档转为向量存储在本地内存中，不推荐在生产环境中使用，因为会占用大量内存和CPU资源
         return vectorStore;
     }
 }
