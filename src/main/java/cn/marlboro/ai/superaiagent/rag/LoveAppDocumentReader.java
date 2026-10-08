@@ -26,12 +26,16 @@ public class LoveAppDocumentReader {
             Resource[] resources = resourcePatternResolver.getResources("classpath:document/*.md");
             for (Resource resource : resources) {
                 String fileName = resource.getFilename();
+
+                // 获取文档status
+                String status = fileName.substring(fileName.length() - 6,fileName.length() - 4);
                 // 配置Markdown文档读取器
                 MarkdownDocumentReaderConfig config = MarkdownDocumentReaderConfig.builder()
                         .withHorizontalRuleCreateDocument(true)
                         .withIncludeCodeBlock(false)
                         .withIncludeBlockquote(false)
                         .withAdditionalMetadata("filename", fileName)
+                        .withAdditionalMetadata("status", status)
                         .build();
                 // 读取Markdown文档并初步切分，后续可以使用更复杂的切分逻辑，通过DocumentTransformer实现
                 MarkdownDocumentReader reader = new MarkdownDocumentReader(resource, config);

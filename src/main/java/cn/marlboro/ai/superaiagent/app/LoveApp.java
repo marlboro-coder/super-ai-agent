@@ -1,6 +1,7 @@
 package cn.marlboro.ai.superaiagent.app;
 
 import cn.marlboro.ai.superaiagent.advisor.MyLoggerAdvisor;
+import cn.marlboro.ai.superaiagent.rag.QueryReWriter;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.chat.client.ChatClient;
@@ -34,6 +35,9 @@ public class LoveApp {
 
     @Resource
     private VectorStore pgVectorVectorStore;
+
+    @Resource
+    private QueryReWriter queryReWriter;
 
     public LoveApp(ChatModel dashscopeChatModel) {
         // 实现多轮对话和对话记忆
@@ -69,8 +73,11 @@ public class LoveApp {
 
     // 基于知识库对话
     public String chatWithRag(String message,String chatId){
+        // 查询重写
+        String rewrite = queryReWriter.rewrite(message);
+
         ChatResponse chatResponse = chatClient.prompt()
-                .user(message)
+                .user(rewrite)
                 .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
                 .advisors(new MyLoggerAdvisor())
                 // 本地知识库
