@@ -13,7 +13,7 @@ import static org.springframework.ai.vectorstore.pgvector.PgVectorStore.PgIndexT
 @Configuration
 public class PgVectorVectorStoreConfig {
 
-    @Bean
+//    @Bean
     public VectorStore pgVectorVectorStore(JdbcTemplate jdbcTemplate, EmbeddingModel dashscopeEmbeddingModel){
         VectorStore vectorStore = PgVectorStore.builder(jdbcTemplate, dashscopeEmbeddingModel)
                 .dimensions(1024)                    // 必须与 EmbeddingModel 实际输出维度一致，DashScope 默认用的是 text-embedding-v3（1024 维）

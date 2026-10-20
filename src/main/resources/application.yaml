@@ -3,6 +3,12 @@ spring:
     name: super-ai-agent
   profiles:
     active: local
+  ai:
+    mcp:
+      client:
+        stdio:
+          servers-configuration: classpath:mcp-servers.json
+
 
 #  ai:
 #  vectorstore:
@@ -34,3 +40,9 @@ knife4j:
   enable: true
   setting:
     language: zh_cn
+
+# 网页搜索
+search-api:
+  api-key: PrBGEeqgAcDt4Ssfgnp8ZYo6
+
+

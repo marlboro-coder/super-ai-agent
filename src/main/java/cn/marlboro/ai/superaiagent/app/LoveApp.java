@@ -1,6 +1,7 @@
 package cn.marlboro.ai.superaiagent.app;
 
 import cn.marlboro.ai.superaiagent.advisor.MyLoggerAdvisor;
+import cn.marlboro.ai.superaiagent.rag.LoveAppRagCustomAdvisorFactory;
 import cn.marlboro.ai.superaiagent.rag.QueryReWriter;
 import jakarta.annotation.Resource;
 import lombok.extern.slf4j.Slf4j;
@@ -13,8 +14,13 @@ import org.springframework.ai.chat.memory.InMemoryChatMemoryRepository;
 import org.springframework.ai.chat.memory.MessageWindowChatMemory;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.chat.model.ChatResponse;
+import org.springframework.ai.tool.ToolCallback;
+import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.stereotype.Component;
+
+import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_CONVERSATION_ID_KEY;
+import static org.springframework.ai.chat.client.advisor.AbstractChatMemoryAdvisor.CHAT_MEMORY_RETRIEVE_SIZE_KEY;
 
 @Component
 @Slf4j
@@ -38,6 +44,10 @@ public class LoveApp {
 
     @Resource
     private QueryReWriter queryReWriter;
+
+    @Resource
+    private ToolCallback[] allTools;
+
 
     public LoveApp(ChatModel dashscopeChatModel) {
         // 实现多轮对话和对话记忆
@@ -86,6 +96,8 @@ public class LoveApp {
 //                .advisors(loveAppCloudAdvisor)
 //                // 基于PgVector
 //                .advisors(new QuestionAnswerAdvisor(pgVectorVectorStore))
+//                // 自定义RAG Advisor，可以将status设置成一个形参，根据传入的形参在工厂中
+//                .advisors(LoveAppRagCustomAdvisorFactory.createLoveAppRagCustomAdvisor(loveAppVectorStore,"单身"))
                 .call()
                 .chatResponse();
 
@@ -95,20 +107,43 @@ public class LoveApp {
         return response;
     }
 
-//    // 基于云服务知识库对话
-//
-//    public String chatWithCloudRag(String message,String chatId){
-//        ChatResponse chatResponse = chatClient.prompt()
-//                .user(message)
-//                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
-//                .advisors(new MyLoggerAdvisor())
-//                .advisors(loveAppCloudAdvisor)
-//                .call()
-//                .chatResponse();
-//        String response = chatResponse.getResult().getOutput().getText();
-//        log.info("模型回复内容：{}",response);
-//        return response;
-//    }
+
+
+    public String doChatWithTools(String message, String chatId) {
+        ChatResponse response = chatClient
+                .prompt()
+                .user(message)
+                .advisors(spec -> spec.param(ChatMemory.CONVERSATION_ID, chatId))
+                // 开启日志，便于观察效果
+                .advisors(new MyLoggerAdvisor())
+                .tools(allTools)
+                .call()
+                .chatResponse();
+        String content = response.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
+    }
+
+    @Resource
+    private ToolCallbackProvider toolCallbackProvider;
+
+    public String doChatWithMcp(String message, String chatId) {
+        ChatResponse response = chatClient
+                .prompt()
+                .user(message)
+                .advisors(spec -> spec.param(CHAT_MEMORY_CONVERSATION_ID_KEY, chatId)
+                        .param(CHAT_MEMORY_RETRIEVE_SIZE_KEY, 10))
+                // 开启日志，便于观察效果
+                .advisors(new MyLoggerAdvisor())
+                .toolCallbacks(toolCallbackProvider)
+                .call()
+                .chatResponse();
+        String content = response.getResult().getOutput().getText();
+        log.info("content: {}", content);
+        return content;
+    }
+
+
 
 
 }

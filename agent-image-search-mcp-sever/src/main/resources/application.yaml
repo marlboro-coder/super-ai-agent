@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: agent-image-search-mcp-sever
+  profiles:
+    active: stdio
+server:
+  port: 8127
+
+unsplash:
+    access-key: hl620dA8EtruD6jXsHVIfY_46R_A3xPdiZTdLi1LTtA
